@@ -6,11 +6,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import me.crimsondawn45.fabricshieldlib.object.AbstractShield;
-import me.crimsondawn45.fabricshieldlib.util.ShieldRegistry;
+import me.crimsondawn45.fabricshieldlib.object.FabricShield;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,14 +25,12 @@ public class PlayerEntityMixin
 		PlayerEntity player = (PlayerEntity) (Object) this;
 		ItemStack activeItem = player.getActiveItem();
 		
-		if(amount >= 3.0F && ShieldRegistry.isShield(activeItem.getItem()))
+		if(amount >= 3.0F && activeItem.getItem() instanceof FabricShield)
 		{
-			System.out.println("Passed if check on \"damageShield()\".");
-
 			int i = 1 + MathHelper.floor(amount);
 			Hand activeHand = player.getActiveHand();
 			
-			activeItem.damage(i, (LivingEntity)player, ((playerEntity) -> { playerEntity.sendToolBreakStatus(activeHand);}));
+			activeItem.damage(i, player, ((playerEntity) -> {playerEntity.sendToolBreakStatus(activeHand);}));
 			
 			if(activeItem.isEmpty())
 			{
@@ -52,41 +48,29 @@ public class PlayerEntityMixin
 			}
 		}
 	}
-
-	@Inject(at = @At(value = "HEAD"), method = "disableShield(Z)V", locals = LocalCapture.CAPTURE_FAILHARD)
-	private void disableShieldHead(boolean sprinting, CallbackInfo callbackInfo)
-	{
-		PlayerEntity player = (PlayerEntity) (Object) this;
-		ItemStack shield = player.getActiveItem();
-
-		if(ShieldRegistry.hasEvent(shield))
-		{
-			ShieldRegistry.fireOnDisable(player, player.getActiveHand(), shield, ShieldRegistry.getEvents(shield));
-		}
-	}
 	
 	@Inject(at = @At(value = "TAIL"), method = "disableShield(Z)V", locals = LocalCapture.CAPTURE_FAILHARD)
-	private void disableShieldTail(boolean sprinting, CallbackInfo callBackInfo)
+	private void disableShield(boolean sprinting, CallbackInfo callBackInfo)
 	{	
 		PlayerEntity player = (PlayerEntity) (Object) this;
 		Item shield = player.getActiveItem().getItem();
 		
-		if(ShieldRegistry.isShield(shield))
+		if(shield instanceof FabricShield)
 		{
-			System.out.println("Passed if check on \"disableShieldTail()\".");
-
 			float f = 0.25F + (float)EnchantmentHelper.getEfficiency(player) * 0.05F;
+		
 			if (sprinting)
 			{
-        		f += 0.75F;
-      		}
-
+				f += 0.75F;
+			}
+			
 			if (player.getRandom().nextFloat() < f)
 			{
-         		player.getItemCooldownManager().set(shield, ((AbstractShield) shield).getCooldownTicks());
-         		player.clearActiveItem();
-         		player.world.sendEntityStatus(player, (byte)30);
-      		}
+				player.getItemCooldownManager().set(shield, ((FabricShield) shield).getCooldownTicks());
+				
+				player.clearActiveItem();
+				player.world.sendEntityStatus(player, (byte)30);
+			}
 		}
 	}
 }

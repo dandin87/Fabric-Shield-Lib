@@ -7,8 +7,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import me.crimsondawn45.fabricshieldlib.util.ShieldRegistry;
-import net.minecraft.entity.Entity;
+import me.crimsondawn45.fabricshieldlib.object.FabricShield;
+import me.crimsondawn45.fabricshieldlib.object.FabricShieldEnchantment;
+import me.crimsondawn45.fabricshieldlib.util.FabricShieldLibRegistry;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffects;
@@ -29,28 +31,20 @@ public class LivingEntityMixin
 			
 			if (amount > 0.0F && ((LivingEntityAccessor)entity).invokeBlockedByShield(source))
 			{
-				//Fire Events
-				if(ShieldRegistry.hasEvent(activeItem))
+				if(activeItem.getItem() instanceof FabricShield)
 				{
-					ShieldRegistry.fireOnBlockDamage(entity, source, amount, entity.getActiveHand(), activeItem, ShieldRegistry.getEvents(activeItem));
+					((FabricShield)activeItem.getItem()).onBlockDamage(entity, source, amount, entity.getActiveHand(), activeItem);
 				}
-
-				//Handle Shield
-				((LivingEntityAccessor)entity).invokeDamageShield(amount);
-				amount = 0.0F;
-
-				if (!source.isProjectile())
+				if(activeItem.hasEnchantments())
 				{
-					Entity sourceEntity = source.getSource();
-					
-					if (sourceEntity instanceof LivingEntity)
+					for(FabricShieldEnchantment enchantment : FabricShieldLibRegistry.getAllShieldEnchantments())
 					{
-					   ((LivingEntityAccessor)entity).invokeTakeShieldHit((LivingEntity)sourceEntity);
+						if(enchantment.hasEnchantment(activeItem))
+						{
+							enchantment.onBlockDamage(entity, source, amount, EnchantmentHelper.getLevel(enchantment, activeItem), entity.getActiveHand(), activeItem);
+						}
 					}
 				}
-
-				//Return?
-				//callbackInfo.setReturnValue(true);
 			}
 		}
 	}
@@ -59,17 +53,59 @@ public class LivingEntityMixin
 	private void tick(CallbackInfo callbackInfo)
 	{
 		LivingEntity entity = (LivingEntity)(Object)this;
-
+		ItemStack activeItem = entity.getActiveItem();
 		ItemStack mainItem = entity.getMainHandStack();
 		ItemStack offhandItem = entity.getOffHandStack();
 		
-		if(ShieldRegistry.hasEvent(mainItem))
+		//Holding Ticks ShieldItem
+		if(mainItem.getItem() instanceof FabricShield)
 		{
-			ShieldRegistry.fireWhileHolding(entity, Hand.MAIN_HAND, mainItem, ShieldRegistry.getEvents(mainItem));
+			((FabricShield)mainItem.getItem()).whileHolding(entity, entity.isBlocking(), Hand.MAIN_HAND, mainItem);
 		}
-		if(ShieldRegistry.hasEvent(offhandItem))
+		else if(offhandItem.getItem() instanceof FabricShield)
 		{
-			ShieldRegistry.fireWhileHolding(entity, Hand.OFF_HAND, offhandItem, ShieldRegistry.getEvents(offhandItem));
+			((FabricShield)offhandItem.getItem()).whileHolding(entity, entity.isBlocking(), Hand.OFF_HAND, offhandItem);
+		}
+		
+		//Holding Ticks Enchantment
+		if(mainItem.hasEnchantments())
+		{
+			for(FabricShieldEnchantment enchantment : FabricShieldLibRegistry.getAllShieldEnchantments())
+			{
+				if(enchantment.hasEnchantment(mainItem))
+				{
+					enchantment.whileHolding(entity, entity.isBlocking(), EnchantmentHelper.getLevel(enchantment, mainItem), Hand.MAIN_HAND, mainItem);
+				}
+			}
+		}
+		else if(offhandItem.hasEnchantments())
+		{
+			for(FabricShieldEnchantment enchantment : FabricShieldLibRegistry.getAllShieldEnchantments())
+			{
+				if(enchantment.hasEnchantment(offhandItem))
+				{
+					enchantment.whileHolding(entity, entity.isBlocking(), EnchantmentHelper.getLevel(enchantment, offhandItem), Hand.OFF_HAND, offhandItem);
+				}
+			}
+		}
+		
+		//Blocking Ticks
+		if(entity.isBlocking())
+		{
+			if(activeItem.getItem() instanceof FabricShield)
+			{
+				((FabricShield)activeItem.getItem()).whileBlocking(entity, entity.getActiveHand(), activeItem);
+			}
+			if(activeItem.hasEnchantments())
+			{
+				for(FabricShieldEnchantment enchantment : FabricShieldLibRegistry.getAllShieldEnchantments())
+				{
+					if(enchantment.hasEnchantment(activeItem))
+					{
+						enchantment.whileBlocking(entity, EnchantmentHelper.getLevel(enchantment, activeItem), entity.getActiveHand(), activeItem);
+					}
+				}
+			}
 		}
 	}
 }
