@@ -69,9 +69,12 @@ publishing {
 		}
 	}
 
-	// select the repositories you want to publish to
+// select the repositories you want to publish to
 	repositories {
-		// uncomment to publish to the local maven
-		// mavenLocal()
+		allprojects {
+			repositories {
+				maven { url 'https://jitpack.io' }
+			}
+		}
 	}
 }

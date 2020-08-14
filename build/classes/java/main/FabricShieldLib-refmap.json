@@ -1,0 +1,36 @@
+{
+  "mappings": {
+    "me/crimsondawn45/fabricshieldlib/mixin/LivingEntityAccessor": {
+      "takeShieldHit": "method_6090(Lnet/minecraft/class_1309;)V",
+      "damageShield": "method_6056(F)V",
+      "blockedByShield": "method_6061(Lnet/minecraft/class_1282;)Z",
+      "activeItemStack": "field_6277:Lnet/minecraft/class_1799;"
+    },
+    "me/crimsondawn45/fabricshieldlib/mixin/LivingEntityMixin": {
+      "damage(Lnet/minecraft/entity/damage/DamageSource;F)Z": "Lnet/minecraft/class_1309;method_5643(Lnet/minecraft/class_1282;F)Z",
+      "tick()V": "Lnet/minecraft/class_1309;method_5773()V"
+    },
+    "me/crimsondawn45/fabricshieldlib/mixin/PlayerEntityMixin": {
+      "damageShield(F)V": "Lnet/minecraft/class_1657;method_6056(F)V",
+      "disableShield(Z)V": "Lnet/minecraft/class_1657;method_7284(Z)V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "me/crimsondawn45/fabricshieldlib/mixin/LivingEntityAccessor": {
+        "takeShieldHit": "method_6090(Lnet/minecraft/class_1309;)V",
+        "damageShield": "method_6056(F)V",
+        "blockedByShield": "method_6061(Lnet/minecraft/class_1282;)Z",
+        "activeItemStack": "field_6277:Lnet/minecraft/class_1799;"
+      },
+      "me/crimsondawn45/fabricshieldlib/mixin/LivingEntityMixin": {
+        "damage(Lnet/minecraft/entity/damage/DamageSource;F)Z": "Lnet/minecraft/class_1309;method_5643(Lnet/minecraft/class_1282;F)Z",
+        "tick()V": "Lnet/minecraft/class_1309;method_5773()V"
+      },
+      "me/crimsondawn45/fabricshieldlib/mixin/PlayerEntityMixin": {
+        "damageShield(F)V": "Lnet/minecraft/class_1657;method_6056(F)V",
+        "disableShield(Z)V": "Lnet/minecraft/class_1657;method_7284(Z)V"
+      }
+    }
+  }
+}
